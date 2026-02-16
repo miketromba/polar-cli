@@ -1,4 +1,5 @@
 import type { Polar } from '@polar-sh/sdk'
+import { ServerList } from '@polar-sh/sdk/lib/config.js'
 import {
 	formatDeleted,
 	formatItem,
@@ -214,6 +215,47 @@ export async function executeOperation(
 			}
 
 			case 'custom': {
+				// CSV export: bypass SDK and fetch raw CSV from API
+				if (operation.rawCsvExport) {
+					const clientOpts = (client as any)._options ?? {}
+					const server = clientOpts.server ?? 'production'
+					const baseURL =
+						clientOpts.serverURL ??
+						(ServerList as Record<string, string>)[server] ??
+						'https://api.polar.sh'
+					const token =
+						typeof clientOpts.accessToken === 'function'
+							? await clientOpts.accessToken()
+							: clientOpts.accessToken
+
+					const params = new URLSearchParams()
+					if (options.flags.organizationId) {
+						params.set(
+							'organization_id',
+							String(options.flags.organizationId)
+						)
+					}
+
+					const qs = params.toString()
+					const url = `${baseURL}${operation.rawCsvExport}${qs ? `?${qs}` : ''}`
+					const resp = await fetch(url, {
+						headers: {
+							Authorization: `Bearer ${token}`,
+							Accept: 'text/csv'
+						}
+					})
+
+					if (!resp.ok) {
+						const body = await resp.text()
+						throw new Error(
+							`Export failed (${resp.status}): ${body}`
+						)
+					}
+
+					const csv = await resp.text()
+					return { stdout: csv.trimEnd(), stderr: '', exitCode: 0 }
+				}
+
 				// Custom operations: build request from all args + flags
 				const req: Record<string, unknown> = { ...options.args }
 				if (operation.flags) {

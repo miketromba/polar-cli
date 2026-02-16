@@ -104,7 +104,9 @@ describe('RESOURCES registry', () => {
 							'boolean',
 							'number',
 							'string[]',
-							'json'
+							'json',
+							'date',
+							'rfcdate'
 						]).toContain(flag.type)
 					}
 				}

@@ -310,7 +310,8 @@ const subscriptions: ResourceDef = {
 		{
 			type: 'custom',
 			sdkMethod: 'export',
-			description: 'Export subscriptions'
+			description: 'Export subscriptions',
+			rawCsvExport: '/v1/subscriptions/export'
 		}
 	]
 }
@@ -397,7 +398,8 @@ const orders: ResourceDef = {
 		{
 			type: 'custom',
 			sdkMethod: 'export',
-			description: 'Export orders'
+			description: 'Export orders',
+			rawCsvExport: '/v1/orders/export'
 		}
 	]
 }
@@ -543,7 +545,8 @@ const customers: ResourceDef = {
 		{
 			type: 'custom',
 			sdkMethod: 'export',
-			description: 'Export customers'
+			description: 'Export customers',
+			rawCsvExport: '/v1/customers/export'
 		}
 	]
 }
@@ -1331,7 +1334,7 @@ const meters: ResourceDef = {
 		'polar meters list',
 		'polar meters create --name "API Calls" --filter \'{"name":"api_call"}\' --aggregation \'{"func":"count"}\'',
 		'polar meters get <id>',
-		'polar meters quantities <id>',
+		'polar meters quantities <id> --start-timestamp 2025-01-01T00:00:00Z --end-timestamp 2025-02-01T00:00:00Z --interval day',
 		'polar meters update <id> --name "API Requests"'
 	],
 	operations: [
@@ -1374,7 +1377,23 @@ const meters: ResourceDef = {
 			sdkMethod: 'quantities',
 			description: 'Get meter quantities',
 			args: [{ name: 'id', description: 'Meter ID', required: true }],
-			flags: [f('customerIds', 'string[]', 'Customer IDs to filter')]
+			flags: [
+				f('startTimestamp', 'date', 'Start timestamp (ISO 8601)', true),
+				f('endTimestamp', 'date', 'End timestamp (ISO 8601)', true),
+				f(
+					'interval',
+					'string',
+					'Interval (hour, day, week, month)',
+					true
+				),
+				f('timezone', 'string', 'Timezone (default: UTC)'),
+				f('customerId', 'string[]', 'Filter by customer ID'),
+				f(
+					'externalCustomerId',
+					'string[]',
+					'Filter by external customer ID'
+				)
+			]
 		}
 	]
 }
@@ -1537,8 +1556,8 @@ const metrics: ResourceDef = {
 			sdkMethod: 'get',
 			description: 'Get metrics',
 			flags: [
-				f('startDate', 'string', 'Start date (ISO 8601)', true),
-				f('endDate', 'string', 'End date (ISO 8601)', true),
+				f('startDate', 'rfcdate', 'Start date (YYYY-MM-DD)', true),
+				f('endDate', 'rfcdate', 'End date (YYYY-MM-DD)', true),
 				f('interval', 'string', 'Interval (day, week, month)', true),
 				f('productId', 'string', 'Filter by product ID'),
 				f('customerId', 'string', 'Filter by customer ID'),

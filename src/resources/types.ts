@@ -10,7 +10,14 @@ export interface FlagDef {
 	name: string // CLI flag name, e.g. "is-recurring"
 	sdkField: string // SDK parameter name, e.g. "isRecurring"
 	description: string
-	type: 'string' | 'boolean' | 'number' | 'string[]' | 'json'
+	type:
+		| 'string'
+		| 'boolean'
+		| 'number'
+		| 'string[]'
+		| 'json'
+		| 'date'
+		| 'rfcdate'
 	required?: boolean
 }
 
@@ -24,6 +31,7 @@ export interface OperationDef {
 	paginatable?: boolean // defaults to true for "list"
 	confirmRequired?: boolean // for delete operations
 	examples?: string[] // Example commands shown in --help
+	rawCsvExport?: string // API path for direct CSV export (bypasses SDK)
 }
 
 export interface ResourceDef {

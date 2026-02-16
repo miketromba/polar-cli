@@ -1,4 +1,5 @@
 import type { Polar } from '@polar-sh/sdk'
+import { RFCDate } from '@polar-sh/sdk/types/rfcdate.js'
 import type { Command } from 'commander'
 import { resolveFormat } from '../output/index'
 import { type ExecuteOptions, executeOperation } from '../resources/handler'
@@ -55,6 +56,10 @@ function extractFlags(
 				}
 			} else if (flag.type === 'string[]' && typeof value === 'string') {
 				result[flag.sdkField] = value.split(',').map(s => s.trim())
+			} else if (flag.type === 'date' && typeof value === 'string') {
+				result[flag.sdkField] = new Date(value)
+			} else if (flag.type === 'rfcdate' && typeof value === 'string') {
+				result[flag.sdkField] = new RFCDate(value)
 			} else {
 				result[flag.sdkField] = value
 			}

@@ -14,6 +14,10 @@ function compressTimestamp(value: string): string {
 function formatCellValue(value: unknown): string {
 	if (value === null || value === undefined) return ''
 
+	if (value instanceof Date) {
+		return compressTimestamp(value.toISOString())
+	}
+
 	if (Array.isArray(value)) {
 		return `[${value.length}]`
 	}

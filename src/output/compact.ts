@@ -59,6 +59,11 @@ function flattenObject(
 			continue
 		}
 
+		if (value instanceof Date) {
+			entries.push([fullKey, compressTimestamp(value.toISOString())])
+			continue
+		}
+
 		if (Array.isArray(value)) {
 			entries.push([fullKey, value.length])
 			continue
