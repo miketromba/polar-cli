@@ -39,7 +39,8 @@
 	"scripts": {
 		"dev": "bun run bin/polar.ts",
 		"build": "bun run scripts/build.ts",
-		"prepublishOnly": "bun run build",
+		"prepublishOnly": "bun run lint && bun run typecheck && bun test && bun run build",
+		"publish": "npm publish --access public",
 		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"test:unit": "bun test tests/unit",

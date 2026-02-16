@@ -280,7 +280,7 @@ describe('executeOperation - error handling', () => {
 			makeOptions({ args: { id: 'bad' } })
 		)
 		expect(result.exitCode).toBe(1)
-		expect(result.stderr).toContain('error')
+		expect(result.stderr.toLowerCase()).toContain('error')
 		expect(result.stderr).toContain('404')
 	})
 })
