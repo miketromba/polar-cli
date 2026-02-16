@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 
 import { Command } from 'commander'
+import pkg from '../package.json'
 import { Auth } from '../src/auth'
 import { createClient } from '../src/client'
 import { registerAllResources } from '../src/commands/register'
@@ -8,7 +9,7 @@ import { Config } from '../src/config'
 import { RESOURCES } from '../src/resources/registry'
 import { formatError, formatErrorCompact } from '../src/utils/errors'
 
-const VERSION = '0.1.0'
+const VERSION = pkg.version
 
 const program = new Command()
 	.name('polar')
