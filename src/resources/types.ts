@@ -32,6 +32,7 @@ export interface OperationDef {
 	confirmRequired?: boolean // for delete operations
 	examples?: string[] // Example commands shown in --help
 	rawCsvExport?: string // API path for direct CSV export (bypasses SDK)
+	bodyKey?: string // SDK body wrapper key for update ops, e.g. "customerUpdate"
 }
 
 export interface ResourceDef {

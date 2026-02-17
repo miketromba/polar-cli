@@ -87,6 +87,7 @@ const organizations: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update an organization',
+			bodyKey: 'organizationUpdate',
 			flags: [
 				f('name', 'string', 'Organization name'),
 				f('slug', 'string', 'Organization slug'),
@@ -179,6 +180,7 @@ const products: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a product',
+			bodyKey: 'productUpdate',
 			flags: [
 				f('name', 'string', 'Product name'),
 				f('description', 'string', 'Product description'),
@@ -290,6 +292,7 @@ const subscriptions: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a subscription',
+			bodyKey: 'subscriptionUpdate',
 			flags: [
 				f('productId', 'string', 'Product ID'),
 				f('prorationBehavior', 'string', 'Proration behavior'),
@@ -378,6 +381,7 @@ const orders: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update an order',
+			bodyKey: 'orderUpdate',
 			flags: [
 				f('billingName', 'string', 'Billing name'),
 				f('billingAddress', 'json', 'Billing address (JSON)')
@@ -463,6 +467,7 @@ const customers: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a customer',
+			bodyKey: 'customerUpdate',
 			flags: [
 				f('email', 'string', 'Customer email'),
 				f('name', 'string', 'Customer name'),
@@ -651,6 +656,7 @@ const checkouts: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a checkout session',
+			bodyKey: 'checkoutUpdate',
 			flags: [
 				f('customerEmail', 'string', 'Customer email'),
 				f('customerName', 'string', 'Customer name'),
@@ -735,8 +741,8 @@ const checkoutLinks: ResourceDef = {
 	defaultFields: ['id', 'label', 'product', 'url', 'createdAt'],
 	examples: [
 		'polar checkout-links list',
-		'polar checkout-links create --product-id <id> --label "Buy Pro"',
-		'polar checkout-links create --product-id <id> --success-url https://example.com/thanks',
+		'polar checkout-links create --product-id <id> --payment-processor stripe --label "Buy Pro"',
+		'polar checkout-links create --product-id <id> --payment-processor stripe --success-url https://example.com/thanks',
 		'polar checkout-links get <id>',
 		'polar checkout-links delete <id> --yes'
 	],
@@ -762,6 +768,12 @@ const checkoutLinks: ResourceDef = {
 			description: 'Create a checkout link',
 			flags: [
 				f('productId', 'string', 'Product ID', true),
+				f(
+					'paymentProcessor',
+					'string',
+					'Payment processor (stripe)',
+					true
+				),
 				f('successUrl', 'string', 'Success redirect URL'),
 				f('label', 'string', 'Link label'),
 				f('allowDiscountCodes', 'boolean', 'Allow discount codes'),
@@ -773,6 +785,7 @@ const checkoutLinks: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a checkout link',
+			bodyKey: 'checkoutLinkUpdate',
 			flags: [
 				f('label', 'string', 'Link label'),
 				f('successUrl', 'string', 'Success redirect URL'),
@@ -834,9 +847,14 @@ const benefits: ResourceDef = {
 			sdkMethod: 'create',
 			description: 'Create a benefit',
 			flags: [
-				f('type', 'string', 'Benefit type', true),
+				f(
+					'type',
+					'string',
+					'Benefit type (custom, discord, github_repository, downloadables, license_keys, meter_credit)',
+					true
+				),
 				f('description', 'string', 'Benefit description', true),
-				f('properties', 'json', 'Benefit properties (JSON)'),
+				f('properties', 'json', 'Benefit properties (JSON)', true),
 				metadataInputFlag
 			]
 		},
@@ -844,7 +862,14 @@ const benefits: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a benefit',
+			bodyKey: 'requestBody',
 			flags: [
+				f(
+					'type',
+					'string',
+					'Benefit type (custom, discord, github_repository, downloadables, license_keys, meter_credit)',
+					true
+				),
 				f('description', 'string', 'Benefit description'),
 				f('properties', 'json', 'Benefit properties (JSON)'),
 				metadataInputFlag
@@ -949,6 +974,7 @@ const licenseKeys: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a license key',
+			bodyKey: 'licenseKeyUpdate',
 			flags: [
 				f('status', 'string', 'License key status'),
 				f('limitActivations', 'number', 'Max activations'),
@@ -1017,7 +1043,7 @@ const discounts: ResourceDef = {
 	defaultFields: ['id', 'name', 'type', 'amount', 'duration', 'code'],
 	examples: [
 		'polar discounts list',
-		'polar discounts create --name "20% Off" --type percentage --amount 20 --duration once',
+		'polar discounts create --name "20% Off" --type percentage --basis-points 2000 --duration once',
 		'polar discounts create --name "$5 Off" --type fixed --amount 500 --duration forever --code SAVE5',
 		'polar discounts get <id>',
 		'polar discounts update <id> --max-redemptions 100',
@@ -1042,13 +1068,7 @@ const discounts: ResourceDef = {
 			description: 'Create a discount',
 			flags: [
 				f('name', 'string', 'Discount name', true),
-				f(
-					'type',
-					'string',
-					'Discount type (percentage, fixed, etc.)',
-					true
-				),
-				f('amount', 'number', 'Discount amount', true),
+				f('type', 'string', 'Discount type (percentage, fixed)', true),
 				f(
 					'duration',
 					'string',
@@ -1056,14 +1076,24 @@ const discounts: ResourceDef = {
 					true
 				),
 				f(
+					'amount',
+					'number',
+					'Discount amount in cents (for fixed type)'
+				),
+				f(
+					'basisPoints',
+					'number',
+					'Discount in basis points, e.g. 1000 = 10% (for percentage type)'
+				),
+				f(
 					'durationInMonths',
 					'number',
 					'Duration in months (for repeating)'
 				),
-				f('currency', 'string', 'Currency code'),
+				f('currency', 'string', 'Currency code (default: usd)'),
 				f('code', 'string', 'Discount code'),
-				f('startsAt', 'string', 'Start date (ISO 8601)'),
-				f('endsAt', 'string', 'End date (ISO 8601)'),
+				f('startsAt', 'date', 'Start date (ISO 8601)'),
+				f('endsAt', 'date', 'End date (ISO 8601)'),
 				f('maxRedemptions', 'number', 'Max redemptions'),
 				f('products', 'string[]', 'Product IDs'),
 				metadataInputFlag
@@ -1073,11 +1103,12 @@ const discounts: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a discount',
+			bodyKey: 'discountUpdate',
 			flags: [
 				f('name', 'string', 'Discount name'),
 				f('code', 'string', 'Discount code'),
-				f('startsAt', 'string', 'Start date (ISO 8601)'),
-				f('endsAt', 'string', 'End date (ISO 8601)'),
+				f('startsAt', 'date', 'Start date (ISO 8601)'),
+				f('endsAt', 'date', 'End date (ISO 8601)'),
 				f('maxRedemptions', 'number', 'Max redemptions'),
 				f('products', 'string[]', 'Product IDs'),
 				metadataInputFlag
@@ -1121,17 +1152,29 @@ const customFields: ResourceDef = {
 			sdkMethod: 'create',
 			description: 'Create a custom field',
 			flags: [
-				f('type', 'string', 'Field type', true),
+				f(
+					'type',
+					'string',
+					'Field type (text, number, date, checkbox, select)',
+					true
+				),
 				f('slug', 'string', 'Field slug', true),
 				f('name', 'string', 'Field name', true),
-				f('properties', 'json', 'Field properties (JSON)')
+				f('properties', 'json', 'Field properties (JSON)', true)
 			]
 		},
 		{
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a custom field',
+			bodyKey: 'customFieldUpdate',
 			flags: [
+				f(
+					'type',
+					'string',
+					'Field type (text, number, date, checkbox, select)',
+					true
+				),
 				f('name', 'string', 'Field name'),
 				f('properties', 'json', 'Field properties (JSON)')
 			]
@@ -1189,6 +1232,7 @@ const files: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a file',
+			bodyKey: 'filePatch',
 			flags: [
 				f('name', 'string', 'File name'),
 				f('version', 'string', 'File version')
@@ -1370,6 +1414,7 @@ const meters: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a meter',
+			bodyKey: 'meterUpdate',
 			flags: [f('name', 'string', 'Meter name'), metadataInputFlag]
 		},
 		{
@@ -1529,6 +1574,7 @@ const eventTypes: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update an event type',
+			bodyKey: 'eventTypeUpdate',
 			flags: [f('isArchived', 'boolean', 'Archive the event type')]
 		}
 	]
@@ -1620,6 +1666,7 @@ const members: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'updateMember',
 			description: 'Update a member',
+			bodyKey: 'memberUpdate',
 			flags: [f('role', 'string', 'Member role')]
 		},
 		{
@@ -1793,6 +1840,7 @@ const webhooks: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'updateWebhookEndpoint',
 			description: 'Update a webhook endpoint',
+			bodyKey: 'webhookEndpointUpdate',
 			flags: [
 				f('url', 'string', 'Webhook URL'),
 				f('events', 'string[]', 'Event types to subscribe to'),
@@ -1922,6 +1970,7 @@ const oauth2Clients: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update an OAuth2 client',
+			bodyKey: 'oAuth2ClientConfigurationUpdate',
 			flags: [
 				f('clientName', 'string', 'Client name'),
 				f('redirectUris', 'string[]', 'Redirect URIs')
@@ -1975,6 +2024,7 @@ const orgTokens: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update an organization access token',
+			bodyKey: 'organizationAccessTokenUpdate',
 			flags: [
 				f('comment', 'string', 'Token comment/description'),
 				f('scopes', 'string[]', 'Token scopes')
@@ -2026,6 +2076,7 @@ const portalBenefitGrants: ResourceDef = {
 			type: 'update',
 			sdkMethod: 'update',
 			description: 'Update a benefit grant',
+			bodyKey: 'customerBenefitGrantUpdate',
 			flags: [f('properties', 'json', 'Grant properties (JSON)')]
 		}
 	]
@@ -2115,7 +2166,8 @@ const portalSubscriptions: ResourceDef = {
 		{
 			type: 'update',
 			sdkMethod: 'update',
-			description: 'Update a subscription'
+			description: 'Update a subscription',
+			bodyKey: 'customerSubscriptionUpdate'
 		},
 		{
 			type: 'custom',
@@ -2162,7 +2214,8 @@ const portalOrders: ResourceDef = {
 		{
 			type: 'update',
 			sdkMethod: 'update',
-			description: 'Update an order'
+			description: 'Update an order',
+			bodyKey: 'customerOrderUpdate'
 		},
 		{
 			type: 'custom',

@@ -1,6 +1,6 @@
 {
 	"name": "@miketromba/polar-cli",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"description": "Unofficial CLI for the Polar (polar.sh) platform — optimized for developers and AI agents",
 	"author": "Michael Tromba",
 	"license": "MIT",

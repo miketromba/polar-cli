@@ -93,6 +93,10 @@ function buildMutationRequest(
 		req[idParam] = options.args.id
 	}
 
+	// Determine where flags go: nested under bodyKey for updates, or flat
+	const flagTarget: Record<string, unknown> =
+		operation.type === 'update' && operation.bodyKey ? {} : req
+
 	// Map flags to SDK fields
 	if (operation.flags) {
 		for (const flag of operation.flags) {
@@ -101,15 +105,20 @@ function buildMutationRequest(
 			if (value !== undefined && value !== null) {
 				if (flag.type === 'json' && typeof value === 'string') {
 					try {
-						req[flag.sdkField] = JSON.parse(value as string)
+						flagTarget[flag.sdkField] = JSON.parse(value as string)
 					} catch {
-						req[flag.sdkField] = value
+						flagTarget[flag.sdkField] = value
 					}
 				} else {
-					req[flag.sdkField] = value
+					flagTarget[flag.sdkField] = value
 				}
 			}
 		}
+	}
+
+	// Nest flags under bodyKey for update operations
+	if (operation.type === 'update' && operation.bodyKey) {
+		req[operation.bodyKey] = flagTarget
 	}
 
 	if (options.flags.organizationId) {
